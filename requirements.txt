@@ -2,3 +2,7 @@ flask
 flask_restx
 werkzeug
 SpeechRecognition
+torch
+transformers
+pandas
+scikit-learn
