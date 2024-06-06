@@ -6,3 +6,4 @@ torch
 transformers
 pandas
 scikit-learn
+openpyxl
