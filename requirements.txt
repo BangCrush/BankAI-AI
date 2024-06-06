@@ -1,5 +1,6 @@
 flask
 flask_restx
+flask_cors
 werkzeug
 SpeechRecognition
 torch
