@@ -27,7 +27,27 @@ api = Api(app)
 #         file = request.json.get('filename')
 #         return ocr_api.ocr_api(file);
     
-    
+# @api.route('/request')
+# class STA(Resource):
+#     def post(self):
+#         if 'voice' not in request.files:
+#             return jsonify({'error': 'No voice part'})
+#         file = request.files['voice']
+#         if file.filename == '':
+#             return jsonify({'error': 'No selected file'})
+#         if file.filename != secure_filename(file.filename):
+#             return jsonify({'error': 'Invalid file name'})
+#         return jsonify(STT.stt(file))
+
+
+def readAzure():
+    with open(os.getcwd() + '/Azure.txt', 'r', encoding='utf-8') as f:
+        txt_data = f.read()
+        data = txt_data.split('\n')
+
+    return data[0], data[1]
+
+
 @api.route('/request')
 class STA(Resource):
     def post(self):
@@ -38,7 +58,21 @@ class STA(Resource):
             return jsonify({'error': 'No selected file'})
         if file.filename != secure_filename(file.filename):
             return jsonify({'error': 'Invalid file name'})
-        return jsonify(TTA.tta(STT.stt(file)))
+        
+        # 음성 파일 저장
+        audio_file_path = os.path.join(os.getcwd(), "audio_files", file.filename)
+        file.save(audio_file_path)
+
+        # Azure key, region
+        azure_key, azure_region = readAzure()
+
+        # 음성인식 값
+        result = jsonify(STT.sttAzure(azure_key, azure_region, audio_file_path))
+
+        # 음성 파일 삭제
+        os.remove(audio_file_path)
+        
+        return result
 
 @api.route('/stt/test')
 class STTTest(Resource):
