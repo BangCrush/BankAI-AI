@@ -102,6 +102,24 @@ def sttAzure(key, region, audio_file):
     print(STT_result)
     return STT_result
 
+# Azure 마이크
+def from_mic(key, region):
+    language_code = 'ko-KR'
+    speech_config = speechsdk.SpeechConfig(subscription=key, region=region, speech_recognition_language=language_code)
+    speech_recognizer = speechsdk.SpeechRecognizer(speech_config=speech_config)
+
+    print("Speak into your microphone.")
+    STT_result = speech_recognizer.recognize_once_async().get()
+    STT_result = STT_result.text.replace(".", "")
+    STT_result = STT_result.replace(",", "")
+    STT_result = STT_result.replace("?", "")
+    print(STT_result)
+
+    STT_result = correct_numeric_transcription(STT_result)
+    STT_result = correct_money_transcription(STT_result.replace(" 원", "원"))
+    print(STT_result)
+
+    return STT_result
 
 # Google
 def stt(audio_file):

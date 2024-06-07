@@ -49,26 +49,31 @@ def readAzure():
 @api.route('/request')
 class STA(Resource):
     def post(self):
-        if 'voice' not in request.files:
-            return jsonify({'error': 'No voice part'})
-        file = request.files['voice']
-        if file.filename == '':
-            return jsonify({'error': 'No selected file'})
-        if file.filename != secure_filename(file.filename):
-            return jsonify({'error': 'Invalid file name'})
-        
-        # 음성 파일 저장
-        audio_file_path = os.path.join(os.getcwd(), "audio_files", file.filename)
-        file.save(audio_file_path)
-
         # Azure key, region
         azure_key, azure_region = readAzure()
 
-        # 음성인식 값
-        result = jsonify(STT.sttAzure(azure_key, azure_region, audio_file_path))
+        # >>>>> 음성 파일 사용 <<<<<
+        # if 'voice' not in request.files:
+        #     return jsonify({'error': 'No voice part'})
+        # file = request.files['voice']
+        # if file.filename == '':
+        #     return jsonify({'error': 'No selected file'})
+        # if file.filename != secure_filename(file.filename):
+        #     return jsonify({'error': 'Invalid file name'})
+        
+        # # 음성 파일 저장
+        # audio_file_path = os.path.join(os.getcwd(), "audio_files", file.filename)
+        # file.save(audio_file_path)
 
-        # 음성 파일 삭제
-        os.remove(audio_file_path)
+        # # 음성인식 값
+        # result = jsonify(STT.sttAzure(azure_key, azure_region, audio_file_path))
+
+        # # 음성 파일 삭제
+        # os.remove(audio_file_path)
+
+
+        # >>>>> 마이크 사용 <<<<<
+        result = STT.from_mic(azure_key, azure_region)
         
         return result
 
