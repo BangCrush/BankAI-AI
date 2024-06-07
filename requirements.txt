@@ -3,3 +3,8 @@ flask_restx
 flask_cors
 werkzeug
 SpeechRecognition
+torch
+transformers
+pandas
+scikit-learn
+openpyxl

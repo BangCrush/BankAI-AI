@@ -3,9 +3,11 @@ sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 
 from flask import Flask, request, jsonify
 from flask_restx import Resource, Api
+from flask_cors import CORS
 from werkzeug.utils import secure_filename
 from SpeachToAction import STT, TTA
 app = Flask(__name__)
+CORS(app)
 api = Api(app)
 
 
@@ -76,6 +78,30 @@ class STA(Resource):
         result = STT.from_mic(azure_key, azure_region)
         
         return result
+
+@api.route('/stt/test')
+class STTTest(Resource):
+    def post(self):
+        if 'voice' not in request.files:
+            return jsonify({'error': 'No voice part'})
+        file = request.files['voice']
+        if file.filename == '':
+            return jsonify({'error': 'No selected file'})
+        if file.filename != secure_filename(file.filename):
+            return jsonify({'error': 'Invalid file name'})
+        return jsonify(STT.stt(file))
+
+@api.route('/stt/test')
+class STTTest(Resource):
+    def post(self):
+        if 'voice' not in request.files:
+            return jsonify({'error': 'No voice part'})
+        file = request.files['voice']
+        if file.filename == '':
+            return jsonify({'error': 'No selected file'})
+        if file.filename != secure_filename(file.filename):
+            return jsonify({'error': 'Invalid file name'})
+        return jsonify(STT.stt(file))
 
 if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0", port=int(os.environ.get("PORT", 35281)))
