@@ -1,14 +1,23 @@
 import sys, os
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, make_response
 from flask_restx import Resource, Api
 from flask_cors import CORS
 from werkzeug.utils import secure_filename
-from SpeachToAction import STT, TTA
+from SpeachToAction import STT, TTA,test
+from Similarity.Similarity_bankai.similarity_model import find_similar_word
+from kobert.similarity_calculator import find_most_similar_word
+import json
+
+
+
 app = Flask(__name__)
+app.config['JSON_AS_ASCII'] = False
 CORS(app)
 api = Api(app)
+
+
 
 
 # @api.route('/sentence/insert')
@@ -41,15 +50,19 @@ api = Api(app)
 
 
 def readAzure():
-    with open(os.getcwd() + '/Azure.txt', 'r', encoding='utf-8') as f:
+    with open(os.getcwd() + '/Config/Azure.txt', 'r', encoding='utf-8') as f:
         txt_data = f.read()
         data = txt_data.split('\n')
 
     return data[0], data[1]
 
+@api.route('/test')
+class TEST(Resource):
+    def get(self):
+        return jsonify({'test': 'test1'})
 
 @api.route('/request')
-class STA(Resource):
+class Request(Resource):
     def post(self):
         # Azure key, region
         azure_key, azure_region = readAzure()
@@ -75,9 +88,25 @@ class STA(Resource):
 
 
         # >>>>> 마이크 사용 <<<<<
-        result = STT.from_mic(azure_key, azure_region)
+        data = request.get_json()
         
-        return result
+        text = data.get('text')
+        options = data.get('options')
+        type = data.get('type')
+        stt_result = STT.from_mic(text,type)
+        if type == "number":
+            result = {'result': stt_result}
+            result = json.dumps(result, ensure_ascii=False)
+            res = make_response(result)
+            return res
+        references = []
+        for option in options:
+            references.append(option['name'])
+        result = find_most_similar_word(stt_result,references)
+        result = json.dumps(result, ensure_ascii=False)
+        res = make_response(result)
+        print(res)
+        return res
 
 @api.route('/stt/test')
 class STTTest(Resource):

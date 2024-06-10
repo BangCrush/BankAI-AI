@@ -1,12 +1,14 @@
 # Speech to Text module
 import speech_recognition as sr
 import re
-
+from SpeachToAction.test import logic
 import azure.cognitiveservices.speech as speechsdk
 
-# 계좌번호(숫자)
-def correct_numeric_transcription(transcription):
-    corrections = {
+number_dic_ko = ("", "일", "이", "삼", "사", "오", "육", "칠", "팔", "구")
+place_value1_ko = ("", "십", "백", "천")
+place_value2_ko = ("", "만", "억", "조", "경")
+
+numeric_corrections = {
         "다시": "-", "대시": "-",
         "영": "0", "공": "0",
         "일": "1", "하나": "1",
@@ -20,7 +22,47 @@ def correct_numeric_transcription(transcription):
         "구": "9", "아홉": "9"
     }
 
-    for key, value in corrections.items():
+def split_number(number, n): # 이미 만든 함수이므로 생략
+    ...
+
+def convert_lt_10000(number, delimiter):
+    """10000 미만의 수를 한글로 변환한다.
+       delimiter가 ''이면 1을 무조건 '일'로 바꾼다."""
+    res = ""
+    for place, digit in enumerate(split_number(number, 1)):
+        if not digit:
+            continue
+        if delimiter and digit == 1 and place != 0:
+            num = ""
+        else:
+            num = number_dic_ko[digit]
+        res = num + place_value1_ko[place] + res
+    return res
+
+def word_to_number_ko(word):
+    """한글을 숫자로 바꾼다."""
+    if word == "영":
+        return 0
+    res, number = 0, []
+    for ch in word.replace(" ", ""):
+        if ch in number_dic_ko:
+            number.append(number_dic_ko.index(ch))
+        elif ch in place_value1_ko:
+            place_value = 10 ** place_value1_ko.index(ch)
+            if number and number[-1] in range(1, 10):
+                number[-1] *= place_value
+            else:
+                number.append(place_value)
+        else:
+            res += sum(number) * 10000 ** place_value2_ko.index(ch)
+            number = []
+    res += sum(number)
+    return res
+
+# 계좌번호(숫자)
+def correct_numeric_transcription(transcription):
+    
+    for key, value in numeric_corrections.items():
         transcription = re.sub(key, value, transcription)
 
     return transcription
@@ -94,31 +136,41 @@ def sttAzure(key, region, audio_file):
     STT_result = STT_result.replace(".", "")
     STT_result = STT_result.replace(",", "")
     STT_result = STT_result.replace("?", "")
-    print(STT_result)
+    # print(STT_result)
+    
+    string = STT_result.replace("원", "")
+  
+
     STT_result = correct_numeric_transcription(STT_result)
-    print(STT_result)
+    # print(STT_result)
     STT_result = correct_money_transcription(STT_result.replace(" 원", "원"))
 
-    print(STT_result)
-    return STT_result
+    # print(STT_result)
+    # return STT_result
+    return logic(string)
 
 # Azure 마이크
-def from_mic(key, region):
-    language_code = 'ko-KR'
-    speech_config = speechsdk.SpeechConfig(subscription=key, region=region, speech_recognition_language=language_code)
-    speech_recognizer = speechsdk.SpeechRecognizer(speech_config=speech_config)
+def from_mic(STT_result,type):
+    # language_code = 'ko-KR'
+    # speech_config = speechsdk.SpeechConfig(subscription=key, region=region, speech_recognition_language=language_code)
+    # speech_recognizer = speechsdk.SpeechRecognizer(speech_config=speech_config)
 
-    print("Speak into your microphone.")
-    STT_result = speech_recognizer.recognize_once_async().get()
-    STT_result = STT_result.text.replace(".", "")
+    # print("Speak into your microphone.")
+    # STT_result = speech_recognizer.recognize_once_async().get()
+    STT_result = STT_result.replace(".", "")
     STT_result = STT_result.replace(",", "")
     STT_result = STT_result.replace("?", "")
     print(STT_result)
-
-    STT_result = correct_numeric_transcription(STT_result)
-    STT_result = correct_money_transcription(STT_result.replace(" 원", "원"))
+    if type== "number":
+        for c in numeric_corrections.keys():
+            if c in STT_result:
+                STT_result = correct_numeric_transcription(STT_result)
+                STT_result = STT_result.replace(" ", "")
+                STT_result = STT_result.replace("-", "")
+                break
+        if "원" in STT_result:
+            STT_result =  logic(STT_result.split('원')[0])
     print(STT_result)
-
     return STT_result
 
 # Google

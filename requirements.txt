@@ -8,3 +8,7 @@ transformers
 pandas
 scikit-learn
 openpyxl
+mxnet
+tqdm
+sentencepiece
+kobert-transformers
