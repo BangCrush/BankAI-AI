@@ -1,6 +1,7 @@
 import torch
 from transformers import BertModel, BertTokenizer, AdamW
 import torch.nn.functional as F
+from tqdm import tqdm
 
 # BERT 모델과 토크나이저 로드
 model_name = 'bert-base-multilingual-cased'
@@ -11,14 +12,15 @@ model = BertModel.from_pretrained(model_name)
 train_data = [
     ("확인", "확인", 1), ("확인", "취소", 0), ("확인", "계좌이체", 0),
     ("취소", "확인", 0), ("취소", "취소", 1), ("취소", "계좌이체", 0),
-    ("계좌이체", "확인", 0), ("계좌이체", "취소", 0), ("계좌이체", "계좌이체", 1)
+    ("계좌이체", "확인", 0), ("계좌이체", "취소", 0), ("계좌이체", "계좌이체", 1),
+    ("오케이","확인",1),("하지마","취소",1),("하지마","확인",0),("하지마","계좌이체",1)
 ]
 
 def train_model(train_data, model, tokenizer, epochs=3):
     optimizer = AdamW(model.parameters(), lr=1e-5)
     model.train()
 
-    for epoch in range(epochs):
+    for epoch in tqdm(range(epochs)):
         total_loss = 0
         for word1, word2, label in train_data:
             inputs1 = tokenizer(word1, return_tensors='pt')
