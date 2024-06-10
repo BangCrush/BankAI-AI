@@ -1,3 +1,4 @@
 Similarity/trained_model/model.safetensors filter=lfs diff=lfs merge=lfs -text
 trained_model/model.safetensors filter=lfs diff=lfs merge=lfs -text
 local_model/model.safetensors filter=lfs diff=lfs merge=lfs -text
+kobert_model/model.safetensors filter=lfs diff=lfs merge=lfs -text
