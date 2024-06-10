@@ -6,8 +6,7 @@ from flask_restx import Resource, Api
 from flask_cors import CORS
 from werkzeug.utils import secure_filename
 from SpeachToAction import STT, TTA,test
-from Similarity.Similarity_bankai.similarity_model import find_similar_word
-from kobert.similarity_calculator import find_most_similar_word
+from Hugging_Face_kobert.similarity_calculator import find_most_similar_word
 import json
 
 
