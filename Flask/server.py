@@ -91,6 +91,7 @@ class Request(Resource):
         
         text = data.get('text')
         options = data.get('options')
+        print(options)
         type = data.get('type')
         stt_result = STT.from_mic(text,type)
         if type == "number":
@@ -103,8 +104,8 @@ class Request(Resource):
             references.append(option['name'])
         result = find_most_similar_word(stt_result,references)
         result = json.dumps(result, ensure_ascii=False)
+        print(result)
         res = make_response(result)
-        print(res)
         return res
 
 @api.route('/stt/test')
